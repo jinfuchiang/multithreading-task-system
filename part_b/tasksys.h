@@ -34,6 +34,8 @@ class TaskSystemParallelSpawn: public ITaskSystem {
         TaskID runAsyncWithDeps(IRunnable* runnable, int num_total_tasks,
                                 const std::vector<TaskID>& deps);
         void sync();
+    private:
+        std::vector<std::thread> workers_;
 };
 
 /*
@@ -51,6 +53,13 @@ class TaskSystemParallelThreadPoolSpinning: public ITaskSystem {
         TaskID runAsyncWithDeps(IRunnable* runnable, int num_total_tasks,
                                 const std::vector<TaskID>& deps);
         void sync();
+    private:
+        void threadEntry(int thread_id);
+        bool is_shut_down_;
+        int num_completed_tasks_;
+        std::mutex mu_;
+        std::vector<std::thread> thread_pools_;
+        std::queue<std::function<void(void)>> task_queue_;
 };
 
 /*
@@ -68,6 +77,29 @@ class TaskSystemParallelThreadPoolSleeping: public ITaskSystem {
         TaskID runAsyncWithDeps(IRunnable* runnable, int num_total_tasks,
                                 const std::vector<TaskID>& deps);
         void sync();
+    private:
+        bool isDependencyResolve(const std::vector<TaskID>& deps);
+        struct Task{
+            int launch_id;
+            std::function<void(void)> func;
+        };
+        struct Launch {
+            int launch_id;
+            IRunnable* runnable;
+            int num_total_tasks;
+            std::vector<TaskID> deps;
+        };
+        void threadEntry(int thread_id);
+        bool is_shut_down_;
+        int next_launch_id_;
+        int num_outstanding_launches_;
+        std::map<int, int> num_outstanding_tasks_;
+        std::mutex mu_;
+        std::condition_variable new_task_cond_;
+        std::condition_variable launch_done_cond_;
+        std::vector<std::thread> thread_pool_;
+        std::list<Launch> waiting_launch_queue_;
+        std::queue<Task> ready_task_queue_;
 };
 
 #endif

@@ -58,9 +58,9 @@ void TaskSystemParallelSpawn::run(IRunnable* runnable, int num_total_tasks) {
     // tasks sequentially on the calling thread.
     //
     int remain_task = num_total_tasks;
-    int num_one_issue = std::min(remain_task, (int)workers_.size());
     int cur_task = 0;
     while(remain_task > 0) {
+        int num_one_issue = std::min(remain_task, (int)workers_.size());
         for(int i = 1; i < num_one_issue; ++i) {
             workers_[i-1] = std::thread(&IRunnable::runTask, runnable, cur_task+i, num_total_tasks);
         }

@@ -1,6 +1,14 @@
 #ifndef _ITASKSYS_H
 #define _ITASKSYS_H
-#include <vector>
+#include<vector>
+#include<list>
+#include<queue>
+#include<map>
+#include <thread>
+#include<condition_variable>
+#include<functional>
+#include<iostream>
+
 
 typedef int TaskID;
 
